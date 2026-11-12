@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Agent Mesh · CoS</title>
+<link rel="stylesheet" href="css/nocturne.css">
+<link rel="stylesheet" href="css/app.css">
+</head>
+<body>
+<div class="app">
+  <header class="top">
+    <div class="brand"><span class="brand-dot"></span><span class="brand-name">Agent Mesh</span></div>
+    <div class="seg" id="views">
+      <label class="seg-opt"><input type="radio" name="view" value="canvas">Canvas</label>
+      <label class="seg-opt"><input type="radio" name="view" value="graph">Graph</label>
+      <label class="seg-opt"><input type="radio" name="view" value="matrix">Matrix</label>
+      <label class="seg-opt"><input type="radio" name="view" value="sessions">Sessions</label>
+      <label class="seg-opt"><input type="radio" name="view" value="usage">Usage</label>
+      <label class="seg-opt"><input type="radio" name="view" value="inventory">Inventory</label>
+      <label class="seg-opt"><input type="radio" name="view" value="memory">Memory</label>
+    </div>
+    <input class="input" id="q" style="width:120px;min-height:32px" placeholder="Search" autocomplete="off">
+    <select class="input" id="ws" style="min-height:32px;width:auto" title="Workspace">
+      <option value="">All spaces</option>
+    </select>
+    <div class="seg seg-sm" id="wins">
+      <label class="seg-opt"><input type="radio" name="win" value="d1">Today</label>
+      <label class="seg-opt"><input type="radio" name="win" value="d7">7d</label>
+      <label class="seg-opt"><input type="radio" name="win" value="d30">30d</label>
+    </div>
+    <div class="top-right">
+      <span class="muted-12" id="age"></span>
+      <span class="live" title="Running = a live session working right now. Open = a live session waiting on you."><span class="live-dot"></span><span id="running" class="txt">0</span></span>
+      <button class="btn btn-ghost btn-sm" data-act="refresh" id="refreshBtn" title="Run a collector pass now">Refresh</button>
+      <button class="btn btn-secondary btn-sm" data-act="collapse" id="collapseBtn">Collapse agents</button>
+    </div>
+  </header>
+  <div class="body">
+    <div class="main">
+      <div class="stage" id="stage"></div>
+      <div class="drawer" id="drawer"></div>
+    </div>
+    <aside class="panel" id="panel"></aside>
+  </div>
+</div>
+<script src="js/app.js"></script>
+</body>
+</html>

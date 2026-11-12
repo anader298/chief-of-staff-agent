@@ -1,0 +1,31 @@
+{
+  "_comment": "Copy to config/mailboxes.json. Labels are what briefs print; addresses are what the send gate allows. SYNTHETIC values.",
+  "owner_addresses": [
+    "owner@example.com",
+    "owner.personal@example.net",
+    "owner@work.example",
+    "owner@racing.example"
+  ],
+  "mailboxes": [
+    {
+      "label": "A-personal",
+      "address": "owner@example.com",
+      "provider": "gmail"
+    },
+    {
+      "label": "B-personal2",
+      "address": "owner.personal@example.net",
+      "provider": "gmail"
+    },
+    {
+      "label": "C-work",
+      "address": "owner@work.example",
+      "provider": "microsoft365"
+    },
+    {
+      "label": "D-racing",
+      "address": "owner@racing.example",
+      "provider": "microsoft365"
+    }
+  ]
+}

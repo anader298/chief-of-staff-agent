@@ -1,0 +1,37 @@
+{
+  "_comment": "Copy to dashboard/config.json and edit. EXAMPLE values.",
+  "plan": {
+    "name": "Subscription plan",
+    "note": "Dollar figures are API-equivalent cost from transcript cost-state lines, not what you are billed."
+  },
+  "timezone": "America/New_York",
+  "repo": "your-github-user/cos",
+  "workspaces": [
+    [
+      "~/general/cos",
+      "cos"
+    ],
+    [
+      "~/general",
+      "general"
+    ],
+    [
+      "~/work",
+      "work"
+    ],
+    [
+      "~/racing",
+      "racing"
+    ],
+    [
+      "~/personal",
+      "personal"
+    ]
+  ],
+  "launchd_prefix": "com.example.cos",
+  "vault": "~/vault",
+  "private_terms": [
+    "Your Name",
+    "yourusername"
+  ]
+}

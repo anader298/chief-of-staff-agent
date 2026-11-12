@@ -1,0 +1,23 @@
+{
+  "_comment": "Shape of ~/.config/cos/tokens.json, or of the JSON inside MAIL_ACCOUNTS_B64. Placeholders only. Never commit the real file.",
+  "_google_client": {
+    "client_id": "<google-oauth-client-id>",
+    "client_secret": "<google-oauth-client-secret>"
+  },
+  "owner@example.com": {
+    "method_rest": "gmail_oauth",
+    "refresh_token": "<refresh-token>"
+  },
+  "owner.personal@example.net": {
+    "method": "gmail_imap",
+    "app_password": "<app-password>"
+  },
+  "owner@work.example": {
+    "method": "graph",
+    "refresh_token": "<refresh-token>"
+  },
+  "owner@racing.example": {
+    "method": "graph",
+    "refresh_token": "<refresh-token>"
+  }
+}
