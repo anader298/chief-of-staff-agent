@@ -4,7 +4,7 @@ A scheduled agent system, built on Claude Code, that reads four mailboxes and a 
 
 **Case study:** [dandoungroup.com/case-studies/#chief-of-staff](https://dandoungroup.com/case-studies/#chief-of-staff)
 
-> **About this repo.** This is a public snapshot of a private system, live since 23 October 2026 and updated continuously: routines, urgency rules and skills change there first. This copy is fixed at the point it was published. Mailboxes, people and every brief in it are synthetic.
+> **About this repo.** This is a public snapshot of a private system, live since 23 October 2026 and updated continuously: routines, urgency rules and skills change there first. The private repository holds real mail, so its history stays private; this copy was published as one commit on 11 November 2026, and every change since is its own commit. Mailboxes, people and every brief in it are synthetic.
 
 ![The Agent Mesh dashboard, on synthetic data](docs/dashboard-canvas.png)
 
@@ -144,8 +144,9 @@ To adapt it, change the rules, not the code: `config/urgency.md` decides when it
 
 The longer write-up, with the exhibits: https://dandoungroup.com/case-studies/#chief-of-staff
 
+
 ## Author
 
-Anthony Nader. A side project, built to learn how far an agent can be trusted when the boundary is enforced outside the model.
+Anthony Nader, Dandoun Group. Built and run daily to test how far an agent can be trusted when the boundary is enforced outside the model.
 
 License: MIT.
