@@ -1,5 +1,7 @@
 # Chief of Staff
 
+[![tests](https://github.com/anader298/chief-of-staff-agent/actions/workflows/test.yml/badge.svg)](https://github.com/anader298/chief-of-staff-agent/actions/workflows/test.yml)
+
 A scheduled agent system, built on Claude Code, that reads four mailboxes and a calendar, writes three short briefs a day, checks every hour whether anything clears a written urgency bar, and prepares every outbound message as a draft. It cannot send. A hook outside the model blocks the send command unless the owner approved that draft in the last hour.
 
 **Case study:** [dandoungroup.com/case-studies/#chief-of-staff](https://dandoungroup.com/case-studies/#chief-of-staff)
@@ -161,7 +163,7 @@ Use: Automate, with a Screen step. Lever: time and risk. It gives the principal 
 - **Playbook or agent, and why.** An agent, because triage has no fixed path. It holds private data, reads untrusted mail and could send, so sending is taken from the model and gated in code it cannot argue with.
 - **How it was built.** On 26 Oct a header bug in a gate under construction passed an empty recipient list and one reply went out; the gate was patched that hour and `test_empty_list_blocked` covers it.
 - **How it's checked.** 12 gate tests, passing on 18 Nov. The log from 23 Oct to 8 Nov: 205 watcher passes, 189 silent, 11 alerts each tied to a rule, 1 unapproved send.
-- **Limits.** Triage judgment is unmeasured (next: a labelled inbox of 60 to 100 messages). A scheduled run could create the approval file, web fetch is ungated, and a fresh clone lacks the hook wiring. No CI. See [Where it breaks](#where-it-breaks).
+- **Limits.** Triage judgment is unmeasured (next: a labelled inbox of 60 to 100 messages). A scheduled run could create the approval file, web fetch is ungated, and a fresh clone lacks the hook wiring. CI runs the gate tests on every push; its first Linux run caught a file-age bug in the hook, now fixed. See [Where it breaks](#where-it-breaks).
 
 How I build with AI: [github.com/anader298/how-i-build-with-ai](https://github.com/anader298/how-i-build-with-ai)
 
