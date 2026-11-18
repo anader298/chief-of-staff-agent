@@ -21,7 +21,9 @@ if [ -z "$CMD" ]; then
   exit 0
 fi
 
-mtime() { stat -f %m "$1" 2>/dev/null || stat -c %Y "$1"; }   # macOS, then GNU
+# File age in epoch seconds. Try GNU first: on Linux, `stat -f` means "filesystem status" and prints
+# text before failing, which broke the age check (approval never opened). BSD/macOS stat rejects -c cleanly.
+mtime() { stat -c %Y "$1" 2>/dev/null || stat -f %m "$1"; }
 
 # Split on command separators and inspect each segment's first program word.
 printf '%s\n' "$CMD" | tr ';|&' '\n\n\n' | while IFS= read -r seg; do
