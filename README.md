@@ -145,6 +145,26 @@ To adapt it, change the rules, not the code: `config/urgency.md` decides when it
 The longer write-up, with the exhibits: https://dandoungroup.com/case-studies/#chief-of-staff
 
 
+## Methodology
+
+Use: Automate, with a Screen step. Lever: time and risk. It gives the principal back the hours spent in four inboxes, the briefs show a leader what needs a decision, and nothing leaves without approval.
+
+| Step | Done by | Check |
+|---|---|---|
+| Run briefs (8am, 1pm, 6pm) and the hourly watcher | Code: Claude Code cloud schedule | One log line per run, silent passes included |
+| Read mail and calendar | Code (`tools/mail.py`), read-only | Per-mailbox count and `FAILED:` line in every brief |
+| Sort mail; judge urgency against five written rules | Model | Each alert names its rule; no labelled test set yet |
+| Draft a reply | Model | Draft only |
+| Send outside the owner's addresses | Person | `hooks/block_send.sh` and the recipient check in `mail.py`, open only for 60 minutes after `outbox/APPROVED` |
+| Change its own rules | Model proposes, person approves | A diff or pull request only |
+
+- **Playbook or agent, and why.** An agent, because triage has no fixed path. It holds private data, reads untrusted mail and could send, so sending is taken from the model and gated in code it cannot argue with.
+- **How it was built.** On 26 Oct a header bug in a gate under construction passed an empty recipient list and one reply went out; the gate was patched that hour and `test_empty_list_blocked` covers it.
+- **How it's checked.** 12 gate tests, passing on 18 Nov. The log from 23 Oct to 8 Nov: 205 watcher passes, 189 silent, 11 alerts each tied to a rule, 1 unapproved send.
+- **Limits.** Triage judgment is unmeasured (next: a labelled inbox of 60 to 100 messages). A scheduled run could create the approval file, web fetch is ungated, and a fresh clone lacks the hook wiring. No CI. See [Where it breaks](#where-it-breaks).
+
+How I build with AI: [github.com/anader298/how-i-build-with-ai](https://github.com/anader298/how-i-build-with-ai)
+
 ## Author
 
 Anthony Nader, Dandoun Group. Built and run daily to test how far an agent can be trusted when the boundary is enforced outside the model.
