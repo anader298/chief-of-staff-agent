@@ -2,7 +2,7 @@
 
 [![tests](https://github.com/anader298/chief-of-staff-agent/actions/workflows/test.yml/badge.svg)](https://github.com/anader298/chief-of-staff-agent/actions/workflows/test.yml)
 
-A scheduled agent system, built on Claude Code, that reads four mailboxes and a calendar, writes three short briefs a day, checks every hour whether anything clears a written urgency bar, and prepares every outbound message as a draft. It cannot send. A hook outside the model blocks the send command unless the owner approved that draft in the last hour.
+A scheduled agent system, built on Claude Code, that reads four mailboxes and a calendar, writes three short briefs a day, checks every hour whether anything clears a written urgency bar, and prepares every outbound message as a draft. The only mail it sends on its own goes to the owner: briefs and alerts to his own addresses. Anything to anyone else lands in Drafts, and a hook outside the model blocks the send unless the owner has approved that exact message in the last hour.
 
 **Case study:** [dandoungroup.com/case-studies/#chief-of-staff](https://dandoungroup.com/case-studies/#chief-of-staff)
 
