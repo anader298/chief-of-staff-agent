@@ -12,10 +12,10 @@ config/*.json
 .claude/settings.local.json
 
 # runtime records: briefs, outbox drafts and the log hold real mail; keep them in a private repo
-briefs/
-log/
-outbox/*
-!outbox/README.md
+/briefs/
+/log/
+/outbox/*
+!/outbox/README.md
 
 # dashboard collector output (prompt previews, titles) and its local config
 dashboard/data/*
