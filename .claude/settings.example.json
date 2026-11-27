@@ -1,5 +1,5 @@
 {
-  "_comment": "Copy to .claude/settings.json. Hooks are what make the rules hold: the model cannot talk its way past an exit code.",
+  "_comment": "Copy to .claude/settings.json. Hooks are what make the rules hold: the model cannot talk its way past an exit code. Only the owner creates outbox/APPROVED, by hand in his own terminal; the deny rules and block_send.sh refuse the agent.",
   "permissions": {
     "allow": [
       "Read",
@@ -20,13 +20,15 @@
     "deny": [
       "Read(./.env)",
       "Read(./.env.*)",
-      "Read(~/.config/cos/**)"
+      "Read(~/.config/cos/**)",
+      "Write(./outbox/APPROVED)",
+      "Edit(./outbox/APPROVED)"
     ]
   },
   "hooks": {
     "PreToolUse": [
       {
-        "matcher": "Bash",
+        "matcher": "Bash|Write|Edit|MultiEdit|NotebookEdit",
         "hooks": [
           {
             "type": "command",

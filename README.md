@@ -23,7 +23,7 @@ The loop worked. It did not scale. So the system copies the loop, and the hard p
 - **Three briefs a day** at 8am, 1pm and 6pm, capped at 250, 200 and 200 words. Mail is bucketed Act (draft a reply), Read (one line) or Ignore (counted, not listed). Each brief carries a health line saying which mailboxes were read.
 - **An hourly watcher**, 7am to 10pm, that is silent by default. It speaks only when a message clears one of five written rules: a recruiter or interviewer writing, a calendar change for today or tomorrow, a counterparty on a live deal, a document for signature, or a deadline inside 24 hours. Everything else waits for the next brief.
 - **Drafts, never sends.** Every message to a third party is a markdown file in `outbox/` or a draft in that mailbox's Drafts folder. The owner sends it from his own mail client.
-- **Two gates in code.** A Claude Code `PreToolUse` hook refuses any shell command that would send mail. Inside the mail tool, a second check refuses any recipient that is not one of the owner's own addresses. Both open only for an hour after the owner creates `outbox/APPROVED`.
+- **Two gates in code.** A Claude Code `PreToolUse` hook refuses every form of send command it knows: `tools/mail.py send` or `send-draft` under any interpreter or flags, sendmail-style programs, inline SMTP code, and curl, wget or openssl aimed at a mail server. Inside the mail tool, a second check refuses any recipient that is not one of the owner's own addresses. Both open only for an hour after the owner creates `outbox/APPROVED` himself. The model cannot create that file: the same hook refuses any command or file write that touches it.
 - **It cannot edit its own rules.** When the owner says "not urgent", it proposes a diff to `config/urgency.md` and waits. A weekly review and a weekly optimizer propose changes as pull requests and never merge them.
 - **Everything is recorded.** One log line per run, including every silent pass. Every brief and alert saved by date. The whole record in git.
 
@@ -106,7 +106,7 @@ Time saved and running cost were not measured, so none is claimed.
 - **Clocks drift.** Every schedule was in UTC. When daylight saving ended, every routine fired an hour early, and the fix was asked for in fourteen briefs before it was made.
 - **It nags.** The same expired item stayed on the list for four days. Repetition had to be designed out after the fact: an ask now drops to one "still open" line after three briefs.
 - **Scope of this repo.** It covers mail and calendar. Readers for other channels are not included. Briefs, alerts and drafts are only as good as the model's reading of the mail; the gates stop it from acting, not from being wrong.
-- **The hook is a pattern match.** `block_send.sh` knows the send tools it was written for. A new way to send mail needs a new line in the hook, which is why the mail tool carries its own gate as a second layer.
+- **The hook is a pattern match.** `block_send.sh` knows the send tools it was written for. A review found four ways around the first version (an interpreter flag, a global option before `send`, curl to a mail server, and the model creating the approval file itself); each now has a test. A new way to send mail needs a new line in the hook, which is why the mail tool carries its own gate as a second layer.
 
 ## Run it / adapt it
 
@@ -157,13 +157,13 @@ Use: Automate, with a Screen step. Lever: time and risk. It gives the principal 
 | Read mail and calendar | Code (`tools/mail.py`), read-only | Per-mailbox count and `FAILED:` line in every brief |
 | Sort mail; judge urgency against five written rules | Model | Each alert names its rule; no labelled test set yet |
 | Draft a reply | Model | Draft only |
-| Send outside the owner's addresses | Person | `hooks/block_send.sh` and the recipient check in `mail.py`, open only for 60 minutes after `outbox/APPROVED` |
+| Send outside the owner's addresses | Person | `hooks/block_send.sh` and the recipient check in `mail.py`, open only for 60 minutes after the owner creates `outbox/APPROVED` by hand; the hook refuses any model command or write that touches that file |
 | Change its own rules | Model proposes, person approves | A diff or pull request only |
 
 - **Playbook or agent, and why.** An agent, because triage has no fixed path. It holds private data, reads untrusted mail and could send, so sending is taken from the model and gated in code it cannot argue with.
 - **How it was built.** On 26 Oct a header bug in a gate under construction passed an empty recipient list and one reply went out; the gate was patched that hour and `test_empty_list_blocked` covers it.
-- **How it's checked.** 12 gate tests, passing on 18 Nov. The log from 23 Oct to 8 Nov: 205 watcher passes, 189 silent, 11 alerts each tied to a rule, 1 unapproved send.
-- **Limits.** Triage judgment is unmeasured (next: a labelled inbox of 60 to 100 messages). A scheduled run could create the approval file, web fetch is ungated, and a fresh clone lacks the hook wiring. CI runs the gate tests on every push; its first Linux run caught a file-age bug in the hook, now fixed. See [Where it breaks](#where-it-breaks).
+- **How it's checked.** 22 gate and preflight tests, passing on 26 Nov. The log from 23 Oct to 8 Nov: 205 watcher passes, 189 silent, 11 alerts each tied to a rule, 1 unapproved send.
+- **Limits.** Triage judgment is unmeasured (next: a labelled inbox of 60 to 100 messages). The model cannot create the approval file by any path the hook knows; a path assembled from shell variables would get past it. Web fetch is ungated, and a fresh clone lacks the hook wiring. CI runs the gate tests on every push; its first Linux run caught a file-age bug in the hook, now fixed. See [Where it breaks](#where-it-breaks).
 
 How I build with AI: [github.com/anader298/how-i-build-with-ai](https://github.com/anader298/how-i-build-with-ai)
 

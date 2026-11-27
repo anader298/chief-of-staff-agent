@@ -11,7 +11,7 @@ based_on: path or message id
 body
 ```
 
-The owner approves by sending it from their own mail client, or by creating `outbox/APPROVED` (`touch outbox/APPROVED`), which unlocks `tools/mail.py send` and `send-draft` for one hour. CoS never sends from here on its own.
+The owner approves by sending it from their own mail client, or by creating `outbox/APPROVED` himself in his own terminal (`touch outbox/APPROVED`), which unlocks `tools/mail.py send` and `send-draft` for one hour. CoS never creates, touches, copies or writes that file, and `hooks/block_send.sh` refuses any command of its that does. CoS never sends from here on its own.
 
 Sessions can also stage a draft in the mailbox's Drafts folder with `python3 tools/mail.py draft` (attachments included). Sending still needs the owner.
 

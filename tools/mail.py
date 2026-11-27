@@ -3,7 +3,7 @@
 
   --account NAME    a mailbox label or address from config/mailboxes.json (default: the first one)
   draft         --to A [--cc B] --subject S (--body-file F | --body T) [--html] [--attach P ...]
-  send          same flags; every recipient must be one of the owner's own addresses unless outbox/APPROVED is < 60 min old
+  send          same flags; every recipient must be one of the owner's own addresses unless outbox/APPROVED (created by the owner, never the agent) is < 60 min old
   list-drafts   [--contains TEXT]
   delete-draft  --contains TEXT
   inbox         [--hours N | --since ISO] [--max N] [--account NAME | --all]   read-only: received mail, newest first
@@ -121,7 +121,9 @@ def gate_list(rcpts):
         fresh = APPROVED.exists() and time.time() - APPROVED.stat().st_mtime < 3600
         if not fresh:
             sys.exit(f"BLOCKED: recipients outside the owner's own addresses ({', '.join(outside)}). Write it to outbox/ as a "
-                     f"draft instead; the owner sends it himself or touches outbox/APPROVED (valid 60 min) after reviewing.")
+                     f"draft instead. To send it, the owner reviews the draft and either sends it himself from his own mail "
+                     f"client or creates outbox/APPROVED himself in his own terminal (touch outbox/APPROVED, valid 60 min). "
+                     f"The agent never creates that file.")
 
 # ----------------------------------------------------------------- gmail (imap/smtp)
 

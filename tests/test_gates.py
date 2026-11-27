@@ -4,7 +4,8 @@
 
 Layer 1: hooks/block_send.sh, the Claude Code PreToolUse hook, refuses a send command before it runs.
 Layer 2: tools/mail.py gate_list(), inside the mail tool, refuses outside recipients.
-Both open only when outbox/APPROVED is less than an hour old.
+Both open only when outbox/APPROVED is less than an hour old. Only the owner creates that file: the hook
+refuses any model command or file write that touches it, and refuses mail endpoints reached around mail.py.
 """
 import importlib.util
 import json
@@ -76,6 +77,12 @@ class MailGate(unittest.TestCase):
         os.utime(f, (old, old))
         self.assertIn("BLOCKED", self.blocked(["someone@else.example"]))
 
+    def test_block_message_tells_owner_to_create_file(self):
+        msg = self.blocked(["someone@else.example"])
+        self.assertIn("owner", msg)
+        self.assertIn("himself", msg)
+        self.assertIn("never creates", msg)
+
     def test_labels_resolve(self):
         self.assertEqual(self.m.resolve("C-work"), "owner@work.example")
         self.assertEqual(self.m.resolve(""), "owner@example.com")
@@ -120,6 +127,80 @@ class SendHook(unittest.TestCase):
     def test_approval_opens_hook(self):
         (self.tmp / "outbox" / "APPROVED").touch()
         self.assertEqual(self.run_hook("python3 tools/mail.py send-draft --contains y"), 0)
+
+    # --- bypasses reported in review: each must exit 2 ---
+
+    def test_interpreter_flags_blocked(self):
+        self.assertEqual(self.run_hook("python3 -I tools/mail.py send --to x --subject y --body z"), 2)
+        self.assertEqual(self.run_hook("python3 -u -B /repo/tools/mail.py send-draft --contains y"), 2)
+        self.assertEqual(self.run_hook("/usr/bin/env python3 tools/mail.py send --to x"), 2)
+        self.assertEqual(self.run_hook("python3 -m tools.mail send --to x"), 2)
+
+    def test_global_option_before_subcommand_blocked(self):
+        self.assertEqual(self.run_hook("python3 tools/mail.py --account X send --to x --subject y"), 2)
+        self.assertEqual(self.run_hook("python3 tools/mail.py --account=X send-draft --contains y"), 2)
+        self.assertEqual(self.run_hook("./tools/mail.py --account X send --to x"), 2)
+        self.assertEqual(self.run_hook("timeout 30 python3 tools/mail.py --account X send --to x"), 2)
+        self.assertEqual(self.run_hook("bash -c 'python3 tools/mail.py --account X send --to x'"), 2)
+
+    def test_mail_endpoints_blocked(self):
+        self.assertEqual(self.run_hook("curl --url smtps://smtp.gmail.com:465 --mail-rcpt x@y.example -T m.eml"), 2)
+        self.assertEqual(self.run_hook("curl -X POST https://graph.microsoft.com/v1.0/me/sendMail -d @m.json"), 2)
+        self.assertEqual(self.run_hook("curl https://gmail.googleapis.com/gmail/v1/users/me/messages/send"), 2)
+        self.assertEqual(self.run_hook("wget --post-file=m.json https://graph.microsoft.com/v1.0/me/sendMail"), 2)
+        self.assertEqual(self.run_hook("openssl s_client -connect smtp.office365.com:587 -starttls smtp"), 2)
+        self.assertEqual(self.run_hook("cat m.eml | curl smtp://smtp.example.com --upload-file -"), 2)
+
+    def test_mail_endpoints_blocked_even_when_approved(self):
+        (self.tmp / "outbox" / "APPROVED").touch()
+        self.assertEqual(self.run_hook("curl smtps://smtp.gmail.com:465 -T m.eml"), 2)
+
+    def test_creating_approval_file_blocked(self):
+        for cmd in ("touch outbox/APPROVED",
+                    "echo yes > outbox/APPROVED",
+                    "printf x >outbox/APPROVED",
+                    "cp /dev/null outbox/APPROVED",
+                    "install -m 644 /dev/null ./outbox/APPROVED",
+                    "echo x | tee outbox/APPROVED",
+                    "python3 -c \"open('outbox/APPROVED','w')\"",
+                    "touch /home/me/repo/outbox/APPROVED",
+                    "cd outbox && touch APPROVED",
+                    "touch outbox//APPROVED",
+                    "mv /tmp/a outbox/APPROVED"):
+            self.assertEqual(self.run_hook(cmd), 2, cmd)
+
+    def test_approval_file_in_outbox_cwd_blocked(self):
+        payload = json.dumps({"tool_name": "Bash", "cwd": str(self.tmp / "outbox"),
+                              "tool_input": {"command": "touch APPROVED"}})
+        env = dict(os.environ, COS_REPO=str(self.tmp))
+        r = subprocess.run(["bash", str(HOOK)], input=payload, capture_output=True, text=True, env=env)
+        self.assertEqual(r.returncode, 2)
+
+    def test_approval_file_blocked_even_when_approved(self):
+        (self.tmp / "outbox" / "APPROVED").touch()
+        self.assertEqual(self.run_hook("touch outbox/APPROVED"), 2)  # refreshing it would extend the window
+
+    def test_write_tool_on_approval_file_blocked(self):
+        for tool in ("Write", "Edit", "MultiEdit", "NotebookEdit"):
+            payload = json.dumps({"tool_name": tool, "tool_input": {"file_path": str(self.tmp / "outbox" / "APPROVED"),
+                                                                    "content": "yes"}})
+            env = dict(os.environ, COS_REPO=str(self.tmp))
+            r = subprocess.run(["bash", str(HOOK)], input=payload, capture_output=True, text=True, env=env)
+            self.assertEqual(r.returncode, 2, tool)
+
+    def test_ordinary_work_still_allowed(self):
+        self.assertEqual(self.run_hook("ls outbox/"), 0)
+        self.assertEqual(self.run_hook("cat outbox/2026-11-04/lark.md"), 0)
+        self.assertEqual(self.run_hook("python3 tools/mail.py --account X draft --to x --subject send"), 0)
+        self.assertEqual(self.run_hook("python3 tools/mail.py list-drafts"), 0)
+        self.assertEqual(self.run_hook("curl -s https://example.com/status"), 0)
+        self.assertEqual(self.run_hook("git log --oneline -5"), 0)
+        self.assertEqual(self.run_hook("rg -n 'mail.py --account X send' README.md"), 0)
+        payload = json.dumps({"tool_name": "Write", "tool_input": {"file_path": str(self.tmp / "outbox" / "x.md"),
+                                                                   "content": "draft"}})
+        r = subprocess.run(["bash", str(HOOK)], input=payload, capture_output=True, text=True,
+                           env=dict(os.environ, COS_REPO=str(self.tmp)))
+        self.assertEqual(r.returncode, 0)
 
 
 class Preflight(unittest.TestCase):
